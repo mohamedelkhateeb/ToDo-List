@@ -1,4 +1,5 @@
 // components/RealTimeComponent.tsx
+"use client";
 import { useEffect, useState } from "react";
 import Pusher from "pusher-js";
 
@@ -16,7 +17,9 @@ const RealTimeComponent: React.FC = () => {
     });
 
     const channel = pusher.subscribe("my-channel");
-    channel.bind("my-event", function (newData: { data: DataItem }) {
+    channel.bind("my-event", function (newData: { data: any }) {
+      console.log("New data received:", newData.data);
+
       setData((prevData) => [...prevData, newData.data]);
     });
 
@@ -24,7 +27,6 @@ const RealTimeComponent: React.FC = () => {
       pusher.unsubscribe("my-channel");
     };
   }, []);
-
   return (
     <div>
       <h1>Real-Time Data</h1>
