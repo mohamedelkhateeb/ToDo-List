@@ -1,7 +1,7 @@
+"use client"
 // components/RealTimeComponent.tsx
-"use client";
-import { useEffect, useState } from "react";
-import Pusher from "pusher-js";
+import { useEffect, useState } from 'react';
+import Pusher from 'pusher-js';
 
 interface DataItem {
   _id: string;
@@ -12,29 +12,35 @@ const RealTimeComponent: React.FC = () => {
   const [data, setData] = useState<DataItem[]>([]);
 
   useEffect(() => {
-    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY!, {
-      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER!,
+    const pusherKey = process.env.NEXT_PUBLIC_PUSHER_KEY!;
+    const pusherCluster = process.env.NEXT_PUBLIC_PUSHER_CLUSTER!;
+
+    if (!pusherKey || !pusherCluster) {
+      console.error('Pusher key or cluster is not defined');
+      return;
+    }
+
+    const pusher = new Pusher(pusherKey, {
+      cluster: pusherCluster,
     });
 
-    const channel = pusher.subscribe("my-channel");
-    channel.bind("my-event", function (newData: { data: any }) {
-      console.log("New data received:", newData.data);
-
+    const channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function (newData: { data: DataItem }) {
       setData((prevData) => [...prevData, newData.data]);
     });
 
     return () => {
-      pusher.unsubscribe("my-channel");
+      pusher.unsubscribe('my-channel');
     };
   }, []);
-  console.log( process.env.NEXT_PUBLIC_PUSHER_KEY);
-  
+console.log(data);
+
   return (
     <div>
       <h1>Real-Time Data</h1>
       <ul>
         {data.map((item) => (
-          <li key={item._id}>{JSON.stringify(item._id)}</li>
+          <li key={item._id}>{JSON.stringify(item)}</li>
         ))}
       </ul>
     </div>

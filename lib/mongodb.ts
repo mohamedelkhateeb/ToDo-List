@@ -1,15 +1,15 @@
 // lib/mongodb.ts
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI;
+const uri = process.env.MONGODB_URI!;
 const options = {};
 
-if (!uri) {
+let client;
+let clientPromise: Promise<MongoClient>;
+
+if (!process.env.MONGODB_URI) {
   throw new Error('Please add your Mongo URI to .env.local');
 }
-
-let client: MongoClient;
-let clientPromise: Promise<MongoClient>;
 
 if (process.env.NODE_ENV === 'development') {
   if (!global._mongoClientPromise) {
