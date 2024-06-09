@@ -27,6 +27,8 @@ const RealTimeComponent: React.FC = () => {
       pusher.unsubscribe("my-channel");
     };
   }, []);
+  console.log( process.env.NEXT_PUBLIC_PUSHER_KEY);
+  
   return (
     <div>
       <h1>Real-Time Data</h1>
