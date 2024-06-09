@@ -1,54 +1,56 @@
-import { MongoClient } from "mongodb";
-import { PassThrough } from "stream";
+"use server";
+const WebSocket = require("ws");
+const { MongoClient } = require("mongodb");
 
-let changeStream;
+const client = new MongoClient(
+  "mongodb+srv://mokhateeb74:dIDvfFQE2UYZp0fe@todo.nwmg2bz.mongodb.net/?retryWrites=true&w=majority&appName=todo",
+  {
+    useNewUrlParser: true,
+    // useUnifiedTopology: true,
+  }
+);
 
 async function connectToDatabase() {
   try {
-    const client = new MongoClient(
-      "mongodb+srv://mokhateeb74:dIDvfFQE2UYZp0fe@todo.nwmg2bz.mongodb.net/?retryWrites=true&w=majority&appName=todo",
-      {
-        useNewUrlParser: true,
-      }
-    );
     await client.connect();
+    console.log("Connected to MongoDB");
     return client.db("todo");
-  } catch (error) {
-    console.error("Error connecting to database:", error);
-    throw error;
+  } catch (err) {
+    console.error("Failed to connect to MongoDB", err);
+    throw err;
   }
 }
 
-export async function GET(request) {
+const wss = new WebSocket.Server({ port: 4000 });
+
+wss.on("listening", () => {
+  console.log("WebSocket server is listening on port 3000");
+});
+
+wss.on("connection", async (ws) => {
+  console.log("New client connected");
+
   try {
-    const stream = new PassThrough();
+    const db = await connectToDatabase();
+    const collection = db.collection("Todo");
 
-    if (!changeStream) {
-      const db = await connectToDatabase();
-      const collection = db.collection("Todo");
-      changeStream = collection.watch();
+    // Send the entire collection at the entry point
+    const initialData = await collection.find({}).toArray();
+    console.log({ initialData });
+    ws.send(JSON.stringify({ type: "initial", data: initialData }));
 
-      // Fetch the entire collection at the entry point
-      const initialData = await collection.find({}).toArray();
-      stream.write(`data: ${JSON.stringify(initialData)}\n\n`);
+    // Set up the change stream for real-time updates
+    const changeStream = collection.watch();
+    changeStream.on("change", (next) => {
+      ws.send(JSON.stringify({ type: "change", data: next }));
+    });
 
-      // Setting up the change stream for real-time updates
-      changeStream.on("change", (next) => {
-        stream.write(`data: ${JSON.stringify(next)}\n\n`);
-      });
-    }
-
-    const responseInit = {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    };
-
-    return new Response(stream, responseInit);
-  } catch (error) {
-    console.error("Error in GET request:", error);
-    return new Response("Internal Server Error", { status: 500 });
+    ws.on("close", () => {
+      console.log("Client disconnected");
+      changeStream.close();
+    });
+  } catch (err) {
+    console.error("Failed to set up WebSocket connection", err);
+    ws.close();
   }
-}
+});

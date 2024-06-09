@@ -5,30 +5,37 @@ import { useEffect, useState } from "react";
 const RealTimeComponent = () => {
   const [data, setData] = useState([]);
   useEffect(() => {
-    const eventSource = new EventSource("/api/listen");
+    const ws = new WebSocket("ws://localhost:4000 ");
 
-    eventSource.onmessage = function (event) {
+    ws.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+
+    ws.onmessage = function (event) {
+      console.log("WebSocket message received:", event.data);
       const parsedData = JSON.parse(event.data);
-      if (Array.isArray(parsedData)) {
+      if (parsedData.type === "initial") {
         // Initial data
-        setData(parsedData);
-      } else {
+        setData(parsedData.data);
+      } else if (parsedData.type === "change") {
         // Handle the change stream data
         setData((prevData) => {
           // Process the change stream event and update state accordingly
-          // This is a simplistic example. You may need to handle different types of change events (insert, update, delete)
-          return [...prevData, parsedData.fullDocument];
+          return [...prevData, parsedData.data.fullDocument];
         });
       }
     };
 
-    eventSource.onerror = function (err) {
-      console.error("EventSource failed:", err);
-      eventSource.close();
+    ws.onerror = function (err) {
+      console.error("WebSocket error:", err);
+    };
+
+    ws.onclose = function () {
+      console.log("WebSocket connection closed");
     };
 
     return () => {
-      eventSource.close();
+      ws.close();
     };
   }, []);
 
@@ -38,7 +45,7 @@ const RealTimeComponent = () => {
     <div>
       <h1>Real-Time Data</h1>
       <ul>
-        {data.map((item , index) => (
+        {data.map((item, index) => (
           <li key={item._id}>{index}</li>
         ))}
       </ul>
