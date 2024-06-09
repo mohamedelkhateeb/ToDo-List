@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+}
+
+.container {
+  width: 80%;
+  margin: 40px auto 0;
+}
+
+.container .add-task {
+  position: relative;
+  width: 100%;
+  background-color: rgb(8, 199, 199);
+  border-radius: 5px;
+  padding-left: 10px;
+}
+
+.container .add-task input {
+  width: 50%;
+  outline: none;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.461);
+  width: 98%;
+  border-radius: 5px;
+  color: white;
+  font-size: 20px;
+  padding: 10px;
+}
+
+.container .add-task .plus {
+  font-size: 3rem;
+  text-align: center;
+  cursor: pointer;
+  color: antiquewhite;
+  margin: 10px;
+}
+
+.container .content {
+  font-size: 1.3rem;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.container .content .no-tasks {
+  color: gray;
+  background: #7773;
+  padding: 20px;
+}
+
+.container .content .task-box {
+  padding: 5px;
+  background-color: rgba(119, 119, 119, 0.08);
+  display: flex;
+  justify-content: space-between;
+}
+
+.tasks-stats {
+  display: flex;
+  justify-content: space-between;
+}
+
+.tasks-stats .tasks-count span {
+  background-color: rgb(8, 199, 199);
+  padding: 5px;
+  border-radius: 5px;
+}
