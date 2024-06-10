@@ -5,12 +5,9 @@ let changeStream;
 
 async function connectToDatabase() {
   try {
-    const client = new MongoClient(
-      "mongodb+srv://mokhateeb74:dIDvfFQE2UYZp0fe@todo.nwmg2bz.mongodb.net/?retryWrites=true&w=majority&appName=todo",
-      {
-        useNewUrlParser: true,
-      }
-    );
+    const client = new MongoClient(process.env.MONGODB_URI, {
+      useUnifiedTopology: true,
+    });
     await client.connect();
     return client.db("todo");
   } catch (error) {
@@ -27,11 +24,9 @@ export async function GET(request) {
       const db = await connectToDatabase();
       const collection = db.collection("Todo");
       changeStream = collection.watch();
-
       // Fetch the entire collection at the entry point
       const initialData = await collection.find({}).toArray();
       stream.write(`data: ${JSON.stringify(initialData)}\n\n`);
-
       // Setting up the change stream for real-time updates
       changeStream.on("change", (next) => {
         stream.write(`data: ${JSON.stringify(next)}\n\n`);
