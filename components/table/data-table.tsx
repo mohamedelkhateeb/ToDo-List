@@ -18,6 +18,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useState } from "react";
 import { ListMinus } from "lucide-react";
 import DataTablePagination from "./pagination";
+import Link from "next/link";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -58,12 +59,9 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
           className="max-w-sm outline-none shadow-md text-black"
         />
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="text-gray-700 gap-2 bg-white ml-auto hover:text-gray ">
-              <ListMinus className="text-2xl" />
-              View
+            <Button className="text-gray-700 gap-2 bg-white ml-auto border-2 hover:bg-gray-200 ">
+              <Link href="/live">Live Data</Link>
             </Button>
-          </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
               .getAllColumns()

@@ -1,6 +1,7 @@
 "use client";
-// components/RealTimeComponent.tsx
 import { useEffect, useState } from "react";
+import { columns } from "./table/columns";
+import { DataTable } from "./table/data-table";
 
 const RealTimeComponent = () => {
   const [data, setData] = useState([]);
@@ -8,20 +9,27 @@ const RealTimeComponent = () => {
     const eventSource = new EventSource("/api/listen");
 
     eventSource.onmessage = function (event) {
-      const parsedData = JSON.parse(event.data);
+      const parsedData = JSON.parse(event?.data);
+      console.log(parsedData);
+
       if (Array.isArray(parsedData)) {
-        // Initial data
         setData(parsedData);
-      } else {
-        // Handle the change stream data
-        setData((prevData) => {
-          // Process the change stream event and update state accordingly
-          // This is a simplistic example. You may need to handle different types of change events (insert, update, delete)
-          return [...prevData, parsedData.fullDocument];
-        });
+      }
+
+      if (parsedData.operationType === "insert") {
+        setData((prevData) => [parsedData.fullDocument, ...prevData]);
+      }
+
+      if (parsedData.operationType === "update") {
+        const { documentKey, updateDescription } = parsedData;
+        const { updatedFields } = updateDescription;
+
+        setData((prevData) => prevData.map((item) => (item._id === documentKey._id ? { ...item, ...updatedFields } : item)));
+      }
+      if (parsedData.operationType === "delete") {
+        setData((prevData) => prevData.filter((item) => item._id !== parsedData.documentKey._id));
       }
     };
-
     eventSource.onerror = function (err) {
       console.error("EventSource failed:", err);
       eventSource.close();
@@ -31,17 +39,9 @@ const RealTimeComponent = () => {
       eventSource.close();
     };
   }, []);
-
-  console.log(data);
-
   return (
     <div>
-      <h1>Real-Time Data</h1>
-      <ul>
-        {data.map((item , index) => (
-          <li key={item._id}>{index}</li>
-        ))}
-      </ul>
+      <DataTable data={data} columns={columns} />
     </div>
   );
 };
